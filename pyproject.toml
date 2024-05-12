@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "rl-pacman"
+version = "0.1.0"
+description = ""
+authors = ["JESUS REVUELTA <jesus.revuelta009@gmail.com>"]
+readme = "README.md"
+packages = [{include = "rl_pacman", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+gym = {extras = ["accept-rom-license"], version = "^0.26.2"}
+ale-py = "^0.8.1"
+matplotlib = "^3.8.4"
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0.0"
+matplotlib = "^3.8.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
