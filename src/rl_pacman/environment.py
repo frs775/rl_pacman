@@ -3,43 +3,52 @@ Pacman Environment
 """
 
 import gym
-import matplotlib.pyplot as plt
 
 
 class PacmanEnv():
 
     def __init__(self) -> None:
         # Environment
-        self.__env =  gym.make('ALE/MsPacman-v5', render_mode='human')
+        self.__env =  gym.make("ALE/MsPacman-v5")
         # Atributes
         self.__action_space = self.__env.action_space
         self.__state = None
-        self.__rewards = None
         self.__lives = None
         self.__done = False
         self.reset()
-
-    def display(self) -> None:
-        plt.imshow(self.__state)
-        plt.title(f"Lives {self.__lives} - Reward: {sum(self.__rewards)}")
-        plt.axis('off')
-        plt.show()
 
     def reset(self) -> None:
         state, info = self.__env.reset()
         self.__state = state
         self.__lives = info["lives"]
-        self.__rewards = []
         self.__done = False
 
-    def move(self, action: int) -> None:
-        if action not in self.__action_space:
-            raise ValueError("Not available action. Avalilable actions: [0, 1, ..., 8]")
+    def move(self, action: int) -> float:
         state, reward, done, _, info = self.__env.step(action)
         self.__state = state
-        self.__rewards.append(reward)
         self.__lives = info["lives"]
         self.__done = done
+        return reward
+
+    def play_game(self, policy) -> tuple:
+        # Reset Game
+        self.reset()
+        # Variables
+        states = [self.__state]
+        lives = [self.__lives]
+        actions = []
+        rewards = []
+        # Play Following Policy
+        while not self.__done:
+            # Take action
+            action = policy(self.__state)
+            reward = self.move(action)
+            # Update Variables
+            states.append(self.__state)
+            lives.append(self.__lives)
+            actions.append(action)
+            rewards.append(reward)
+        return states, lives, actions, rewards
 
     def stop(self) -> None:
         self.__env.close()

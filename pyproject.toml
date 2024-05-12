@@ -11,6 +11,7 @@ python = "^3.10"
 gym = {extras = ["accept-rom-license"], version = "^0.26.2"}
 ale-py = "^0.8.1"
 matplotlib = "^3.8.4"
+opencv-python = "^4.9.0.80"
 
 
 [tool.poetry.group.dev.dependencies]
