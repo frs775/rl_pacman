@@ -76,7 +76,7 @@ class QLearning():
 
 def main():
     q_learnig = QLearning()
-    q_learnig.train_q_learning(1, 0.8, 0.8)
+    q_learnig.train_q_learning(100, 0.8, 0.8)
     q_learnig.play_game(r"C:\Users\revue\Documents\rl_pacman\animations\q_learning_game.avi", True)
     q_learnig.stop()
 
