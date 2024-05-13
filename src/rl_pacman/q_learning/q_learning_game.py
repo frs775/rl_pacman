@@ -1,4 +1,5 @@
 from rl_pacman.environment import PacmanEnv
+from rl_pacman.q_learning.q_matrix import QMatrix
 import cv2
 import random
 
@@ -12,7 +13,21 @@ class QLearning():
         # Create Environment
         self.__pacman_env = PacmanEnv()
         # Q Matrix (Sparse)
-        self.__Q = {}
+        self.__Q = QMatrix()
+
+    def __best_action(self, hash_state) -> int:
+        # Choose Action
+        scores = list(map(lambda action:
+                          self.__Q.get(hash_state, action),
+                          range(self.__pacman_env.action_space.n)
+                      )
+                 )
+        action_scores = dict(zip(range(self.__pacman_env.action_space.n), scores))
+        action = max(action_scores, key=action_scores.get)
+        # If not information for the state (all actions < max = 0) -> random policy 
+        if not action_scores[action]:
+            action = random.randint(0, self.__pacman_env.action_space.n - 1)
+        return action
 
     def train_q_learning(self, num_games: int = 10, alpha: float = 0.5, gamma: float = 0.5) -> None:
         # For each Game
@@ -23,31 +38,20 @@ class QLearning():
             while not self.__pacman_env.done:
                 # Choose Action
                 origin_state = frozenset(self.__pacman_env.state.reshape(-1,))
-                if (origin_state in self.__Q) and self.__Q[origin_state]:
-                    action = max(self.__Q[origin_state], key=self.__Q[origin_state].get)
-                else:
-                    action = random.randint(0, self.__pacman_env.action_space.n - 1)
-                    self.__Q[origin_state] = {action: 0}
+                action = self.__best_action(origin_state)
                 # Move
                 reward = self.__pacman_env.move(action)
-                # Update Q
-                # max
                 new_state = frozenset(self.__pacman_env.state.reshape(-1,))
-                if (new_state in self.__Q) and self.__Q[new_state]:
-                    max_new_state = max(self.__Q[new_state], key=self.__Q[new_state].get)
-                else:
-                    max_new_state = 0
-                # Value
-                self.__Q[origin_state][action] = self.__Q[origin_state][action] + alpha * (reward + gamma * (max_new_state) - self.__Q[origin_state][action])
+                # Update Q
+                new_value = self.__Q.get(origin_state, action) + alpha * (reward + gamma * (self.__best_action(new_state)) - self.__Q.get(origin_state, action))
+                self.__Q.set(origin_state, action, new_value)
 
     def __q_policy(self, state) -> int:
-        hash_state = frozenset(state.reshape(-1,))
-        # If visited state during training
-        if (hash_state in self.__Q):
-            if self.__Q[hash_state]:
-                return  max(self.__Q[hash_state], key=self.__Q[hash_state].get)
-        else:
-            return random.randint(0, self.__pacman_env.action_space.n - 1)
+        # Hash State
+        hashed_state = frozenset(state.reshape(-1,))
+        # Get Best Action
+        action = self.__best_action(hashed_state)
+        return action
         
     def __save_animations(self, states, save_path: str) -> None:
         height, width, layers = states[0].shape
